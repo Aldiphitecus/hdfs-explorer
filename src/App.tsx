@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import { useQuery } from "@tanstack/react-query";
+import AddFolder from "./components/custom/add-folder";
+import FolderComponent from "./components/custom/folder";
+import { axiosInstance } from "./lib/utils";
 function App() {
-  const [count, setCount] = useState(0)
+
+  const {data} = useQuery({
+    queryKey: ["stuff"],
+    queryFn: async () => {
+      return (await axiosInstance.get(`user/${import.meta.env.VITE_HDFS_USER}/?op=LISTSTATUS`)).data;
+    }
+  })
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="container">
+      <header>
+        <h1 className="font-bold text-3xl">Hadoop File Explorer</h1>
+      </header>
+
+      <div className="float-right">
+        <AddFolder />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div className="mt-3 grid w-full grid-cols-6 gap-4">
+        {data && data.FileStatuses.FileStatus.map((file) => (
+          <FolderComponent key={file.pathSuffix} name={file.pathSuffix} />
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
