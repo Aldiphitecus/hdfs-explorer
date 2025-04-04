@@ -6,13 +6,14 @@ import { axiosInstance } from "@/lib/utils";
 
 export default function AddFolder() {
   const queryClient = useQueryClient();
+  const currentPath = window.location.pathname.replace(/\/$/, "");
 
   const mutation = useMutation({
     mutationFn: async (name: string) => {
       return (
         await axiosInstance.put(
-          `${name}?op=MKDIR&user.name=${
-            import.meta.env.HDFS_USER
+          `${currentPath}/${name}?op=MKDIRS&user.name=${
+            import.meta.env.VITE_HDFS_USER
           }`
         )
       ).data;
@@ -33,8 +34,8 @@ export default function AddFolder() {
 
   return (
     <form className="flex items-center gap-x-2.5" onSubmit={handleSubmit}>
-      <Input />
-      <Button type="submit">Add Folder</Button>
+      <Input disabled={mutation.isPending} name="name"/>
+      <Button type="submit" className="cursor-pointer" disabled={mutation.isPending}>Add Folder</Button>
     </form>
   );
 }
