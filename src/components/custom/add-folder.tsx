@@ -12,8 +12,7 @@ export default function AddFolder() {
     mutationFn: async (name: string) => {
       return (
         await axiosInstance.put(
-          `${currentPath}/${name}?op=MKDIRS&user.name=${
-            import.meta.env.VITE_HDFS_USER
+          `${currentPath}/${name}?op=MKDIRS&user.name=${import.meta.env.VITE_HDFS_USER
           }`
         )
       ).data;
@@ -30,11 +29,14 @@ export default function AddFolder() {
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
     mutation.mutate(name);
+    setInterval(() => {
+      window.location.reload();
+    }, 2650)
   };
 
   return (
     <form className="flex items-center gap-x-2.5" onSubmit={handleSubmit}>
-      <Input disabled={mutation.isPending} name="name"/>
+      <Input disabled={mutation.isPending} name="name" />
       <Button type="submit" className="cursor-pointer" disabled={mutation.isPending}>Add Folder</Button>
     </form>
   );

@@ -44,7 +44,7 @@ function Explorer() {
       <div className="mt-3 grid w-full grid-cols-6 gap-4">
         {data &&
           data.FileStatuses.FileStatus.map((file) => (
-            <FolderComponent key={file.pathSuffix} name={file.pathSuffix} />
+            <FolderComponent key={file.pathSuffix} name={file.pathSuffix} owner={file.owner} type={file.type} modificationTime={file.modificationTime} />
           ))}
       </div>
     </div>
