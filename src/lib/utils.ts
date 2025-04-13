@@ -8,8 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_WEBHDFS_URL,
-  withCredentials: true,
-  headers: { "Content-Type": "application/json" },
+  params: {
+    "user.name": import.meta.env.VITE_HDFS_USER,
+  },
 });
 
 export function truncate(str: string, length: number) {

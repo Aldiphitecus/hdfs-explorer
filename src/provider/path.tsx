@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PathContext } from '../context/path';
+import { PathContext } from '@/context/path.ts';
 
 interface PathProviderProps {
   children: React.ReactNode;
@@ -10,7 +10,6 @@ export const PathProvider: React.FC<PathProviderProps> = ({ children }) => {
     const params = useParams();
     const navigate = useNavigate();
     
-    // Get current path from URL, defaults to root
     const currentPath = params["*"] ? `/${params["*"]}` : "/";
     
     const navigateUp = () => {
