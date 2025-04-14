@@ -1,5 +1,5 @@
 import React from "react";
-import { Info, Pencil, Trash2, LogIn } from "lucide-react";
+import { Info, Pencil, Trash2, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,24 +10,20 @@ import { EllipsisVertical } from "lucide-react";
 import { usePath } from "@/context/path";
 import { useModal } from "@/context/modal";
 import { FileInfo } from "@/type";
-import { truncate } from "@/lib/utils";
+import { truncate, getExtension, axiosInstance } from "@/lib/utils";
+import { fileIcon } from "@/constant";
 
-type FolderComponentProps = FileInfo;
+type FileComponentProps = FileInfo;
 
-const FolderComponent: React.FC<FolderComponentProps> = ({
+const FileComponent: React.FC<FileComponentProps> = ({
   name,
   owner,
   type,
   size,
   modificationTime,
 }) => {
-  const { navigateTo, joinPath } = usePath();
   const { openInfoModal, openRenameModal, openDeleteModal } = useModal();
-
-  const handleClick = () => {
-    navigateTo(joinPath(name));
-  };
-
+  const { joinPath } = usePath();
   const handleInfo = () => {
     openInfoModal({ name, owner, type, modificationTime, size });
   };
@@ -40,34 +36,48 @@ const FolderComponent: React.FC<FolderComponentProps> = ({
     openDeleteModal({ name, owner, type, modificationTime, size });
   };
 
+  const handleDownload = async () => {
+    try {
+      const response = await axiosInstance.get(`/file`, {
+        params: { path: joinPath(name) },
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute("download", name);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
+  };
+
+  const getFileIcon = () => {
+    const extension = getExtension(name)?.toLowerCase();
+    if (!extension) return <div className="w-6 h-6 bg-gray-200 rounded" />;
+
+    for (const [iconPath, extensions] of Object.entries(fileIcon)) {
+      if (extensions.includes(extension)) {
+        return <img src={iconPath} alt={extension} className="w-16 h-16" />;
+      }
+    }
+
+    return <div className="w-6 h-6 bg-gray-200 rounded" />;
+  };
+
   return (
     <>
-      <div
-        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow relative"
-        onDoubleClick={handleClick}
-      >
+      <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow relative">
         <div className="flex flex-col items-center text-center">
-          <div className="text-blue-500 mb-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 hover:scale-110 transition-transform"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 7h4l2 2h10a1 1 0 011 1v7a1 1 0 01-1 1H3V7z"
-              />
-            </svg>  
-          </div>
+          <div className="text-blue-500 mb-2">{getFileIcon()}</div>
 
           <>
             <div className="font-medium text-gray-800 truncate">
-              {`${truncate(name, 13)}`}
+              {truncate(name, 13)}
             </div>
+            <div className="text-xs text-gray-500 truncate">{size}</div>
           </>
         </div>
 
@@ -77,12 +87,9 @@ const FolderComponent: React.FC<FolderComponentProps> = ({
               <EllipsisVertical className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onSelect={handleClick}
-              >
-                <LogIn color="green" />
-                <span>Open Folder</span>
+              <DropdownMenuItem className="cursor-pointer" onSelect={handleDownload}>
+                <Download color="green"/>
+                <span>Download</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
@@ -113,4 +120,4 @@ const FolderComponent: React.FC<FolderComponentProps> = ({
   );
 };
 
-export default FolderComponent;
+export default FileComponent;

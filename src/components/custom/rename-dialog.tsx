@@ -31,16 +31,19 @@ function RenameDialog() {
   const mutation = useMutation({
     mutationFn: async () => {
       return (
-        await axiosInstance.put(
-          `${joinPath(fileInfo?.name ?? "")}?op=RENAME&destination=${joinPath(newName)}`
-        )
+        await axiosInstance.put(`/${fileInfo?.type.toLowerCase()}/rename`, {
+          old_path: joinPath(fileInfo?.name as string),
+          new_path: joinPath(newName),
+        })
       ).data;
     },
     onSuccess: () => {
       toast.success("Rename successed");
       queryClient.invalidateQueries({ queryKey: ["fileList", currentPath] });
-      closeModal();
     },
+    onSettled: () => {
+      closeModal();
+    }
   });
 
   const handleSubmit = (e: React.FormEvent) => {

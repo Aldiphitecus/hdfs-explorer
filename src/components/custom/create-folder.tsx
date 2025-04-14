@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { axiosInstance } from "@/lib/utils";
 import { usePath } from "@/context/path.ts";
+import { AxiosError } from "axios";
 
 export default function CreateFolder() {
   const queryClient = useQueryClient();
@@ -16,9 +17,9 @@ export default function CreateFolder() {
   const mutation = useMutation({
     mutationFn: async (name: string) => {
       return (
-        await axiosInstance.put(
-          `${joinPath(name)}?op=MKDIRS`
-        )
+        await axiosInstance.post("/directory", {
+          path: joinPath(name),
+        })
       ).data;
     },
 
@@ -27,6 +28,13 @@ export default function CreateFolder() {
       toast.success("Folder created successfully");
       setName("")
     },
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Failed to create folder");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+    }
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -40,7 +48,7 @@ export default function CreateFolder() {
 
   return (
     <form className="flex items-center gap-x-2.5" onSubmit={handleSubmit}>
-      <Input disabled={mutation.isPending} onChange={(e) => setName(e.target.value)} className="border px-2 py-1 rounded text-sm" />
+      <Input disabled={mutation.isPending} value={name} onChange={(e) => setName(e.target.value)} placeholder="New Folder" className="border px-2 py-1 rounded text-sm" />
       <Button type="submit" className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm" disabled={mutation.isPending}>Create Folder</Button>
     </form>
   );

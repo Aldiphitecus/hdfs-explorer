@@ -5,13 +5,15 @@ import { File } from "lucide-react";
 import { FileStatusResponse } from "@/type";
 import CreateFolder from "@/components/custom/create-folder";
 import FolderComponent from "@/components/custom/folder";
+import FileComponent from "@/components/custom/file";
 import { usePath } from "@/context/path.ts";
-import { axiosInstance } from "@/lib/utils";
+import { axiosInstance, formatSize } from "@/lib/utils";
 import { PathProvider } from "@/provider/path";
 import RenameDialog from "@/components/custom/rename-dialog";
 import { ModalProvider } from "@/provider/modal";
 import DeleteDialog from "./components/custom/delete-dialog";
 import InfoDialog from "./components/custom/info-dialog";
+import UploadDialog from "./components/custom/upload-dialog";
 
 // ---------------------
 // EXPLORER COMPONENT
@@ -23,14 +25,21 @@ function Explorer() {
     queryKey: ["fileList", currentPath],
     queryFn: async () => {
       return (
-        await axiosInstance.get(currentPath, {
+        await axiosInstance.get("/directory", {
           params: {
-            op: "LISTSTATUS",
+            path: currentPath,
           },
         })
       ).data;
     },
   });
+
+  const directories =
+    data?.FileStatuses.FileStatus.filter((file) => file.type === "DIRECTORY") ||
+    [];
+
+  const files =
+    data?.FileStatuses.FileStatus.filter((file) => file.type === "FILE") || [];
 
   return (
     <>
@@ -41,18 +50,23 @@ function Explorer() {
             <h1 className="text-2xl font-semibold">📁 Hadoop File Explorer</h1>
             <p className="text-sm text-gray-500">Path: {currentPath}</p>
           </div>
+
           <div className="flex items-center gap-2">
-            <button
-              onClick={navigateUp}
-              className="flex items-center gap-1 text-sm text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              ⬆️ Go Up
-            </button>
+            {
+              currentPath !== "/" && (
+                <button
+                  onClick={navigateUp}
+                  className="flex items-center gap-1 text-sm text-gray-700 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  ⬆️ Go Up
+                </button>
+              )
+            }
             <CreateFolder />
+            <UploadDialog />
           </div>
         </header>
 
-   
         <main className="p-6">
           {data?.FileStatuses.FileStatus.length == 0 ? (
             <div className="text-center text-gray-400 mt-12">
@@ -60,21 +74,49 @@ function Explorer() {
               <p>No files or folders</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {data?.FileStatuses.FileStatus.map((file) => (
-                <FolderComponent
-                  key={file.pathSuffix}
-                  name={file.pathSuffix}
-                  owner={file.owner}
-                  type={file.type}
-                  modificationTime={file.modificationTime}
-                />
-              ))}
-            </div>
+            <>
+              {directories.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-medium mb-4 text-gray-700">Directories</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {directories.map((file) => (
+                      <FolderComponent
+                        key={file.pathSuffix}
+                        name={file.pathSuffix}
+                        owner={file.owner}
+                        type={file.type}
+                        size={formatSize(file.length)}
+                        modificationTime={file.modificationTime}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {files.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-medium mb-4 text-gray-700">Files</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {files.map((file) => (
+                      <FileComponent
+                        key={file.pathSuffix}
+                        name={file.pathSuffix}
+                        owner={file.owner}
+                        type={file.type}
+                        size={formatSize(file.length)}
+                        modificationTime={file.modificationTime}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+
+            </>
           )}
         </main>
       </div>
-      
+
       <InfoDialog />
       <RenameDialog />
       <DeleteDialog />

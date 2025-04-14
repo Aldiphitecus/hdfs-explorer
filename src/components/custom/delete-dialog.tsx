@@ -19,24 +19,30 @@ import { RemoteExceptionWrapper } from "@/type";
 const DeleteDialog = () => {
   const { modalType, fileInfo, closeModal } = useModal();
   const { currentPath, joinPath } = usePath();
-//   console.log(joinPath(currentPath))
+  //   console.log(joinPath(currentPath))
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return (await axiosInstance.delete(`${joinPath(fileInfo?.name ?? "")}?op=DELETE`)).data;
+      return (
+        await axiosInstance.delete(
+          `${fileInfo?.type.toLowerCase()}?path=${joinPath(
+            fileInfo?.name as string
+          )}`
+        )
+      ).data;
     },
     onSuccess: () => {
       toast.success("Delete successed");
       queryClient.invalidateQueries({ queryKey: ["fileList", currentPath] });
     },
     onSettled: () => {
-        closeModal();
+      closeModal();
     },
     onError: (e: AxiosError) => {
-        const errorData = e.response?.data as RemoteExceptionWrapper;
-        toast.error(errorData?.RemoteException?.message || "An error occurred");
-    }
+      const errorData = e.response?.data as RemoteExceptionWrapper;
+      toast.error(errorData?.RemoteException?.message || "An error occurred");
+    },
   });
 
   return (

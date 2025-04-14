@@ -39,6 +39,7 @@ export interface FileInfo {
   name: string;
   owner: string;
   type: FileType;
+  size: string;
   modificationTime: number;
 }
 

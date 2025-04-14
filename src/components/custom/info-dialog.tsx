@@ -20,7 +20,11 @@ function InfoDialog() {
           </span>
           <span className="w-full">
             <small className="font-bold">Type</small>
-            <p>{fileInfo?.type}</p>
+            <p>{fileInfo?.type.toLowerCase()}</p>
+          </span>
+          <span>
+            <small className="font-bold">Size</small>
+            <p>{fileInfo?.size}</p>
           </span>
           <span className="w-full">
             <small className="font-bold">Modification time</small>
